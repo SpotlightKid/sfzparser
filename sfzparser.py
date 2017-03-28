@@ -32,7 +32,7 @@ class SFZParser(object):
         self.groups = []
         self.sections = []
 
-        with open(sfz_path, encoding=self.encoding or 'utf-8') as sfz:
+        with open(sfz_path, encoding=self.encoding or 'utf-8-sig') as sfz:
             self.parse(sfz)
 
     def parse(self, sfz):
