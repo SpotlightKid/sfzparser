@@ -10,7 +10,7 @@ import sys
 from collections import namedtuple
 from itertools import groupby
 from operator import attrgetter, itemgetter
-from os.path import abspath, basename, join as pathjoin, sep as pathsep, splitext
+from os.path import abspath, basename, exists, join as pathjoin, sep as pathsep, splitext
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
@@ -256,6 +256,9 @@ def main(args=None):
     regex = re.compile(args.regex, re.IGNORECASE)
 
     samples = []
+
+    if not exists(args.sampledir):
+        return "Sample directory not found: %s" % args.sampledir
 
     for path in find_samples(args.sampledir, args.file_types):
         sample_path = strip_dirs(str(path), args.keep_dirs)
