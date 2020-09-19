@@ -318,7 +318,7 @@ def main(args=None):
             layer = region.layers[sample.layer]
 
         if sample.sequence_no is None:
-            sample.sequence = len(layer.samples) + 1
+            sample = sample._replace(sequence_no=len(layer.samples) + 1)
 
         if sample.sequence_no in layer.samples:
             log.warning(
