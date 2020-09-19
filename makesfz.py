@@ -66,6 +66,7 @@ SAMPLE_LAYER_VELOCITIES = {
     "f": (96, 127),
     "soft": (0, 63),
     "loud": (64, 127),
+    "all": (0, 127),
 }
 
 Sample = namedtuple(
@@ -270,8 +271,8 @@ def main(args=None):
             continue
 
         info = match.groupdict()
-        sequence_no = info["sequence_no"]
-        layer = info["layer"] or "mf"
+        sequence_no = info.get("sequence_no")
+        layer = info.get("layer") or "all"
 
         root = get_root_note(
             path, info, args.base_octave, args.ignore_metadata, args.detect_pitch
