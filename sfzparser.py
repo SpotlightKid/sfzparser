@@ -13,10 +13,16 @@ SFZ_NOTE_LETTER_OFFSET = {'a': 9, 'b': 11, 'c': 0, 'd': 2, 'e': 4, 'f': 5, 'g': 
 
 
 def sfz_note_to_midi_key(sfz_note):
-    sharp = '#' in sfz_note
+    accidental = 0
+
+    if '#' in sfz_note or '♯' in sfz_note:
+        accidental = 1
+    elif 'b' in sfz_note or '♭' in sfz_note:
+        accidental = -1
+
     letter = sfz_note[0].lower()
     octave = int(sfz_note[-1])
-    return SFZ_NOTE_LETTER_OFFSET[letter] + ((octave + 1) * 12) + (1 if sharp else 0)
+    return max(0, min(127, SFZ_NOTE_LETTER_OFFSET[letter] + ((octave + 1) * 12) + accidental))
 
 
 def freq_to_cutoff(param):
