@@ -12,15 +12,23 @@ from io import open
 SFZ_NOTE_LETTER_OFFSET = {'a': 9, 'b': 11, 'c': 0, 'd': 2, 'e': 4, 'f': 5, 'g': 7}
 
 
-def sfz_note_to_midi_key(sfz_note):
+def sfz_note_to_midi_key(sfz_note, german=False):
     accidental = 0
 
-    if '#' in sfz_note or '♯' in sfz_note:
+    if '#' in sfz_note[1:] or '♯' in sfz_note:
         accidental = 1
-    elif 'b' in sfz_note or '♭' in sfz_note:
+    elif 'b' in sfz_note[1:] or '♭' in sfz_note:
         accidental = -1
 
     letter = sfz_note[0].lower()
+
+    if german:
+        # TODO: Handle sharps (e.g. "Fis") and flats (e.g. "Es")
+        if letter == 'b':
+            accidental = -1
+        if letter == 'h':
+            letter = 'b'
+
     octave = int(sfz_note[-1])
     return max(0, min(127, SFZ_NOTE_LETTER_OFFSET[letter] + ((octave + 1) * 12) + accidental))
 
