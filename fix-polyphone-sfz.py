@@ -83,8 +83,9 @@ def main(args=None):
     else:
         outfp = sys.stdout
 
-    with outfp:
-        outfp.write(sfz)
+    if num_subs or not args.inplace:
+        with outfp:
+            outfp.write(sfz)
 
 
 if __name__ == '__main__':
