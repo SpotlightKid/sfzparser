@@ -8,33 +8,47 @@ from os.path import exists
 
 
 SFZ_NOTE_LETTER_OFFSET = {'a': 9, 'b': 11, 'c': 0, 'd': 2, 'e': 4, 'f': 5, 'g': 7}
+NOTE_RX = re.compile(r"\b(hikey|key|lokey|pitch_keycenter)=([a-h](#|♯|b|♭)?\d+)\b",
+                     re.IGNORECASE | re.UNICODE)
 
 
-def sfz_note_to_midi_key(sfz_note):
+
+def sfz_note_to_midi_key(sfz_note, german=False):
     accidental = 0
 
-    if '#' in sfz_note or '♯' in sfz_note:
+    if '#' in sfz_note[1:] or '♯' in sfz_note:
         accidental = 1
-    elif 'b' in sfz_note or '♭' in sfz_note:
+    elif 'b' in sfz_note[1:] or '♭' in sfz_note:
+        # Polyphone fortunately does not use flats, AFAICS,
+        # that would create ambiguities when German note names are used.
         accidental = -1
 
     letter = sfz_note[0].lower()
+
+    if german:
+        if letter == 'b':
+            accidental = -1
+        if letter == 'h':
+            letter = 'b'
+
     octave = int(sfz_note[-1])
     return max(0, min(127, SFZ_NOTE_LETTER_OFFSET[letter] + ((octave + 1) * 12) + accidental))
 
 
-def replace_key(match):
+def replace_key(match, german=False):
     opcode = match.group(1)
     note_name = match.group(2)
 
     if note_name is not None:
-        return "%s=%s" % (opcode, sfz_note_to_midi_key(note_name))
+        return "%s=%s" % (opcode, sfz_note_to_midi_key(note_name, german))
 
     return match.group(0)
 
 
 def main(args=None):
     ap = argparse.ArgumentParser()
+    ap.add_argument('-g', '--german', action="store_true",
+                    help="Input uses mixed/German note names")
     ap.add_argument('-i', '--inplace', action="store_true",
                     help="Change input file in-place")
     ap.add_argument('sfzfile', help="SFZ input file")
@@ -53,16 +67,14 @@ def main(args=None):
     with open(args.sfzfile) as infp:
         sfz = infp.read()
 
-    total_subs = 0
-    for opcode in ('hikey', 'key', 'lokey', 'pitch_keycenter'):
-        RX = re.compile(r"\b(%s)=([a-h](#|♯|b|♭)?\d+)" % opcode, re.IGNORECASE | re.UNICODE)
-        sfz, num_subs = RX.subn(replace_key, sfz)
-        total_subs += num_subs
 
-        if num_subs:
-            print("Fixed %d occurences of opcode '%s'" % (num_subs, opcode), file=sys.stderr)
+    if re.search(r"\b(hikey|key|lokey|pitch_keycenter)=h\d+", sfz, re.I):
+        print("Detected use of mixed/German note names. Enabling '-g' option.", file=sys.stderr)
+        args.german = True
 
-    print("Total opcodes fixed: %d" % total_subs, file=sys.stderr)
+    sfz, num_subs = NOTE_RX.subn(lambda m: replace_key(m, args.german), sfz)
+
+    print("Total opcodes fixed: %d" % num_subs, file=sys.stderr)
 
     if args.inplace:
         outfp = open(args.sfzfile, 'w')
