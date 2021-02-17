@@ -76,14 +76,14 @@ def main(args=None):
 
     print("Total opcodes fixed: %d" % num_subs, file=sys.stderr)
 
-    if args.inplace:
-        outfp = open(args.sfzfile, 'w')
-    elif args.output:
-        outfp = open(args.output, 'w')
-    else:
-        outfp = sys.stdout
-
     if num_subs or not args.inplace:
+        if args.inplace:
+            outfp = open(args.sfzfile, 'w')
+        elif args.output:
+            outfp = open(args.output, 'w')
+        else:
+            outfp = sys.stdout
+
         with outfp:
             outfp.write(sfz)
 
